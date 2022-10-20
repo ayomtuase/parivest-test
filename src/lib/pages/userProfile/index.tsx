@@ -17,7 +17,7 @@ import {
 } from "@chakra-ui/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/router";
-import { Fragment, useState } from "react";
+import { ChangeEvent, Fragment, useState } from "react";
 
 import ArrowLeftIcon from "../../assets/icons/arrow-left.svg";
 import ChevronDownIcon from "../../assets/icons/chevron-down.svg";
