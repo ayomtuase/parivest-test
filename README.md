@@ -1,4 +1,4 @@
-## Parivest Frontend Developer Test
+## Parivest Frontend Developer Test  
 
 ### This project was completed as an assessment for the role of frontend developer at Parivest.
 
@@ -17,7 +17,8 @@ To install dependencies: `yarn install`
 
 To run in development mode: `yarn dev`
 
-### (Result in Production)[https://ayomide-oguntuase-parivest-test.vercel.app/]
+### [Result in Production](https://ayomide-oguntuase-parivest-test.vercel.app/)
+
 
 
 
