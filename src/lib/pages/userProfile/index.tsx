@@ -17,7 +17,7 @@ import {
 } from "@chakra-ui/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/router";
-import { ChangeEvent, Fragment, useState } from "react";
+import { type ChangeEvent, Fragment, useState } from "react";
 
 import ArrowLeftIcon from "../../assets/icons/arrow-left.svg";
 import ChevronDownIcon from "../../assets/icons/chevron-down.svg";
@@ -38,10 +38,6 @@ const UserProfile = () => {
   const userDetail = users?.data?.filter(
     (detail: UserType) => detail.client_id === clientId
   )[0];
-
-  const [overallStatus, setOverallStatus] = useState(
-    userDetail?.status?.access
-  );
 
   const [status, setStatus] = useState({
     access: "Denied",

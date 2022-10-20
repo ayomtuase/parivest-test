@@ -1,4 +1,12 @@
-import { Divider, Flex, HStack, Icon, Text, VStack } from "@chakra-ui/react";
+import {
+  Divider,
+  Flex,
+  HStack,
+  Icon,
+  type IconProps,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
 
 import AdminsIcon from "../assets/icons/admins.svg";
 import ChangePasswordIcon from "../assets/icons/change-password.svg";
@@ -15,7 +23,7 @@ const NavItem = ({
   navItemName,
   active = false,
 }: {
-  icon: any;
+  icon: (_chakra_ui_system.ComponentWithAs<"svg", IconProps>)["as"];
   navItemName: string;
   active?: boolean;
 }) => {

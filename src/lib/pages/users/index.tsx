@@ -32,11 +32,7 @@ import type { UserType } from "lib/types/user";
 import { apiClient } from "lib/utils/apiClient";
 
 const Users = () => {
-  const {
-    isLoading,
-    isError,
-    data: { data: users = [], metadata: pageInfo = {} } = {},
-  } = useQuery(["users"], () =>
+  const { data: { data: users = [] } = {} } = useQuery(["users"], () =>
     apiClient.get("/users").then((res) => {
       return res?.data?.data?.[0];
     })
