@@ -51,7 +51,10 @@ const UserProfile = () => {
     bioInformation: "Denied",
   });
 
-  const handleStatusChange = (e, statusName) => {
+  const handleStatusChange = (
+    e: ChangeEvent<HTMLSelectElement>,
+    statusName: string
+  ) => {
     setStatus({ ...status, [statusName]: e.target.value });
   };
 
