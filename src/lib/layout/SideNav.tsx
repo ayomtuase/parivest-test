@@ -3,10 +3,9 @@ import {
   Flex,
   HStack,
   Icon,
-  type IconProps,
   Text,
   VStack,
-  type _chakra_ui_system
+  type As,
 } from "@chakra-ui/react";
 
 import AdminsIcon from "../assets/icons/admins.svg";
@@ -24,7 +23,7 @@ const NavItem = ({
   navItemName,
   active = false,
 }: {
-  icon: (_chakra_ui_system.ComponentWithAs<"svg", IconProps>)["as"];
+  icon: As<JSX.Element> | undefined;
   navItemName: string;
   active?: boolean;
 }) => {
