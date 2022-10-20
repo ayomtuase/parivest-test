@@ -154,14 +154,16 @@ const UserProfile = () => {
             <ModalFooter>
               <Button
                 bg="primaryBlue.500"
-                onClick={onClose}
                 fontWeight="500"
                 fontSize="20px"
                 lineHeight="24px"
                 color="primaryBlue.50"
                 px="6"
                 py="4"
-                onClick={() => handleUpdate()}
+                onClick={() => {
+                  onClose();
+                  handleUpdate();
+                }}
                 _hover={{
                   color: "primaryBlue.50",
                 }}
