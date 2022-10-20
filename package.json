@@ -7,13 +7,11 @@
     "dev": "next dev",
     "build": "next build",
     "postbuild": "next-sitemap --config next-sitemap.config.js",
-    "start": "next start",
-    
+    "start": "next start",    
     "format": "prettier --write src",
     "up": "yarn upgrade-interactive",
     "up-latest": "yarn up --latest",
-    "release": "cross-env HUSKY=0 standard-version",
-    
+    "release": "cross-env HUSKY=0 standard-version"    
   },
   "dependencies": {
     "@chakra-ui/anatomy": "^2.0.7",
