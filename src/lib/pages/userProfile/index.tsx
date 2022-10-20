@@ -27,6 +27,11 @@ import type { Users } from "lib/types/users";
 
 const UserProfile = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isInfoModalOpen,
+    onOpen: onInfoModalOpen,
+    onClose: onInfoModalClose,
+  } = useDisclosure();
 
   const queryClient = useQueryClient();
 
@@ -38,6 +43,8 @@ const UserProfile = () => {
   const userDetail = users?.data?.filter(
     (detail: UserType) => detail.client_id === clientId
   )[0];
+
+  const [overallStatus, setOverallStatus] = useState("");
 
   const [status, setStatus] = useState({
     access: "Denied",
@@ -51,10 +58,24 @@ const UserProfile = () => {
     e: ChangeEvent<HTMLSelectElement>,
     statusName: string
   ) => {
-    setStatus({ ...status, [statusName]: e.target.value });
+    setStatus((s) => {
+      return { ...s, [statusName]: e.target.value };
+    });
   };
 
-  const handleUpdate = () => {};
+  const handleUpdate = () => {
+    if (Object.values(status).some((s) => s === "Pending")) {
+      setOverallStatus("Pending");
+    }
+    if (Object.values(status).some((s) => s === "In review")) {
+      setOverallStatus("In review");
+    }
+    if (Object.values(status).every((s) => s === "Approved")) {
+      setOverallStatus("Approved");
+    }
+    onClose();
+    onInfoModalOpen();
+  };
 
   return (
     <Flex bg="white" direction="column">
@@ -92,7 +113,6 @@ const UserProfile = () => {
         </Button>
 
         {/* Status Modal */}
-
         <Modal onClose={onClose} isOpen={isOpen} isCentered>
           <ModalOverlay />
           <ModalContent>
@@ -102,32 +122,37 @@ const UserProfile = () => {
               {[
                 {
                   title: "Access",
+                  name: "access",
                   value: status.access,
                 },
                 {
                   title: "Account information",
+                  name: "accountInformation",
                   value: status.accountInformation,
                 },
                 {
                   title: "Investment profile",
+                  name: "investmentProfile",
                   value: status.investmentProfile,
                 },
                 {
                   title: "Employment information",
+                  name: "employmentInformation",
                   value: status.employmentInformation,
                 },
                 {
                   title: "Bio information",
+                  name: "bioInformation",
                   value: status.bioInformation,
                 },
               ].map((item) => (
-                <Fragment key={item.value}>
+                <Fragment key={item.title}>
                   <Text color="neutral.700">{item.title}</Text>
                   <Select
                     w="100%"
                     mb="8"
                     variant="filled"
-                    onChange={(e) => handleStatusChange(e, item.title)}
+                    onChange={(e) => handleStatusChange(e, item.name)}
                     icon={
                       <Icon
                         as={ChevronDownIcon}
@@ -136,10 +161,9 @@ const UserProfile = () => {
                       />
                     }
                     placeholder="Select option"
+                    defaultValue={item.value}
                   >
-                    <option value="Denied" selected>
-                      Denied
-                    </option>
+                    <option value="Denied">Denied</option>
                     <option value="Pending">Pending</option>
                     <option value="In review">In review</option>
                     <option value="Approved">Approved</option>
@@ -168,6 +192,41 @@ const UserProfile = () => {
                 }}
               >
                 Update
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* OverallStatus */}
+        <Modal onClose={onClose} isOpen={isInfoModalOpen} isCentered>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Status</ModalHeader>
+            <ModalCloseButton color="secondaryGreen.600" />
+            <ModalBody>
+              <Text>Overall Status: {overallStatus}</Text>{" "}
+              <Text>API call should happen now</Text>
+            </ModalBody>
+            <ModalFooter>
+              <Button
+                bg="primaryBlue.500"
+                fontWeight="500"
+                fontSize="20px"
+                lineHeight="24px"
+                color="primaryBlue.50"
+                px="6"
+                py="4"
+                onClick={() => {
+                  onInfoModalClose();
+                }}
+                _hover={{
+                  color: "primaryBlue.50",
+                }}
+                _focus={{
+                  color: "neutral.900",
+                }}
+              >
+                Close
               </Button>
             </ModalFooter>
           </ModalContent>
