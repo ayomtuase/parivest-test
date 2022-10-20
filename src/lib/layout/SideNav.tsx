@@ -6,6 +6,7 @@ import {
   type IconProps,
   Text,
   VStack,
+  type _chakra_ui_system
 } from "@chakra-ui/react";
 
 import AdminsIcon from "../assets/icons/admins.svg";
