@@ -10,10 +10,17 @@ interface LayoutProps {
 
 const DashboardLayout = ({ children }: LayoutProps) => {
   return (
-    <Flex w="100%" maxW="100vw">
+    <Flex w="100%" maxW="100vw" minH="100vh" maxH="100vh">
       <SideNav />
 
-      <Flex flexGrow="1" direction="column" maxW="80%">
+      <Flex
+        flexGrow="1"
+        direction="column"
+        position="sticky"
+        minH="100vh"
+        maxH="100vh"
+        overflowY="auto"
+      >
         {/* Top bar */}
         <Header />
 

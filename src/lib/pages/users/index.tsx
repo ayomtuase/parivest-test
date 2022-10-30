@@ -1,3 +1,5 @@
+/* eslint-disable no-nested-ternary */
+
 import {
   Button,
   Flex,
@@ -20,6 +22,7 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  Box,
 } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
@@ -30,6 +33,28 @@ import DateIcon from "../../assets/icons/date.svg";
 import SearchIcon from "../../assets/icons/search.svg";
 import type { UserType } from "lib/types/user";
 import { apiClient } from "lib/utils/apiClient";
+import { formatDate } from "lib/utils/formatDate";
+
+const colorStatusText = (status: string) => {
+  let color = "";
+  switch (status) {
+    case "Approved":
+      color = "#5CA37B";
+      break;
+    case "Pending":
+      color = "#DABC29";
+      break;
+    case "In-review":
+      color = "#296DDA";
+      break;
+    case "Denied":
+      color = "#ff4d4d";
+      break;
+    default:
+      color = "";
+  }
+  return color;
+};
 
 const Users = () => {
   const { data: { data: users = [] } = {} } = useQuery(["users"], () =>
@@ -39,7 +64,7 @@ const Users = () => {
   );
 
   return (
-    <Flex bg="white" direction="column">
+    <Flex bg="white" direction="column" mb="10">
       <HStack color="neutral.800" ml="8" mt="8" mb="6">
         <Menu>
           <MenuButton
@@ -120,26 +145,72 @@ const Users = () => {
         <Table variant="striped">
           <Thead>
             <Tr>
-              <Th py="8">Date joined</Th>
-              <Th py="8">User ID</Th>
-              <Th py="8">Name</Th>
-              <Th py="8">Email address</Th>
-              <Th py="8">Phone no.</Th>
-              <Th py="8">Status</Th>
-              <Th py="8">Action</Th>
+              {[
+                "Date joined",
+                "User ID",
+                "Name",
+                "Email address",
+                "Phone no.",
+                "Status",
+                "Action",
+              ].map((heading) => (
+                <Th
+                  key={heading}
+                  py="8"
+                  px={heading === "Action" ? "2" : "5"}
+                  color="primaryBlue.700"
+                  textTransform="none"
+                  fontSize="md"
+                  fontWeight="400"
+                  lineHeight="19px"
+                >
+                  {heading}
+                </Th>
+              ))}
             </Tr>
           </Thead>
           <Tbody>
             <>
               {users.map((user: UserType) => (
                 <Tr color="neutral.900" key={user?.client_id}>
-                  <Td>{user?.createdAt}</Td>
-                  <Td color="tertiaryBlue.700">{user?.client_id}</Td>
-                  <Td>{`${user?.first_name} ${user?.last_name}`}</Td>
-                  <Td>{user?.email}</Td>
-                  <Td>{user?.phone}</Td>
-                  <Td>{user?.status?.access}</Td>
-                  <Td color="secondaryGreen.600">
+                  <Td h="69px" px="4">
+                    {formatDate(user?.createdAt)}
+                  </Td>
+                  <Td h="69px" color="tertiaryBlue.700">
+                    {user?.client_id}
+                  </Td>
+                  <Td
+                    h="69px"
+                    px="4"
+                  >{`${user?.first_name} ${user?.last_name}`}</Td>
+                  <Td h="69px" px="4">
+                    {user?.email}
+                  </Td>
+                  <Td h="69px" px="4">
+                    {user?.phone}
+                  </Td>
+                  <Td h="69px" px="3">
+                    <Box
+                      as="span"
+                      p="8px 16px"
+                      borderRadius="16px"
+                      bg={
+                        user?.status?.access === "Approved"
+                          ? "#DEEDE5"
+                          : user?.status?.access === "Pending"
+                          ? "#F8F2D4"
+                          : user?.status?.access === "In-review"
+                          ? "#D4E2F8"
+                          : user?.status?.access === "Denied"
+                          ? "#ffe6e6"
+                          : ""
+                      }
+                      color={colorStatusText(user?.status?.access)}
+                    >
+                      {user?.status?.access}
+                    </Box>
+                  </Td>
+                  <Td h="69px" color="secondaryGreen.600" px="3">
                     <Link href={`/user-profile/${user?.client_id}`}>View</Link>
                   </Td>
                 </Tr>

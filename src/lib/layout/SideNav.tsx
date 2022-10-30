@@ -1,4 +1,5 @@
 import {
+  Box,
   Divider,
   Flex,
   HStack,
@@ -53,17 +54,27 @@ const SideNav = () => {
   return (
     <Flex
       direction="column"
-      w="20%"
+      minW="17%"
+      minH="100vh"
       maxH="100vh"
-      h="100vh"
       position="sticky"
       top="0"
+      overflowY="auto"
+      overflowX="clip"
       zIndex="sticky"
       bg="white"
       left="0"
     >
-      <Icon as={Logo} w="222px" h="38px" mx="6" mt="6 " />
-      <VStack align="start" justify="space-between" flexGrow="1" mt="70px">
+      <Box
+        position="fixed"
+        bg="white"
+        zIndex="sticky"
+        px={{ lg: "3", xl: "6" }}
+        pt="6"
+      >
+        <Icon as={Logo} w={{ lg: "170px", xl: "222px" }} h="38px" />
+      </Box>
+      <VStack align="start" justify="space-between" flexGrow="1" mt="95px">
         <VStack w="100%" align="start" pl="8px" pr="8px">
           {[
             {

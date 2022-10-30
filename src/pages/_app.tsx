@@ -12,7 +12,7 @@ const queryClient = new QueryClient();
 const MyApp = ({ Component, pageProps }: AppProps) => {
   return (
     <QueryClientProvider client={queryClient}>
-      <ReactQueryDevtools initialIsOpen={false} position="top-left" />
+      <ReactQueryDevtools initialIsOpen={false} position="top-right" />
       <Chakra>
         <DashboardLayout>
           <Component {...pageProps} />

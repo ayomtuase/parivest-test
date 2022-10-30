@@ -7,7 +7,7 @@ import RepeatIcon from "../assets/icons/repeat.svg";
 const Header = () => {
   return (
     <Flex
-      h="93px"
+      minH="93px"
       align="center"
       pl="10"
       pr="12"
