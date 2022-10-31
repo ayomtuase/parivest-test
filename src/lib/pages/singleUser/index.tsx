@@ -3,6 +3,7 @@ import {
   Flex,
   HStack,
   Icon,
+  Image,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -15,15 +16,14 @@ import {
   useDisclosure,
   VStack,
 } from "@chakra-ui/react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import { type ChangeEvent, Fragment, useState } from "react";
 
 import ArrowLeftIcon from "../../assets/icons/arrow-left.svg";
 import ChevronDownIcon from "../../assets/icons/chevron-down.svg";
-import UserAvatar from "../../assets/icons/user-avatar.svg";
-import type { UserType } from "lib/types/user";
-import type { Users } from "lib/types/users";
+import type { SingleUserType } from "lib/types/singleUserType";
+import { apiClient } from "lib/utils/apiClient";
 
 const UserProfile = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -33,16 +33,24 @@ const UserProfile = () => {
     onClose: onInfoModalClose,
   } = useDisclosure();
 
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
 
-  const users: Users | undefined = queryClient.getQueryData(["users"]);
+  // const users: Users | undefined = queryClient.getQueryData(["users"]);
   const router = useRouter();
 
-  const { clientId } = router.query;
+  const { id } = router.query;
 
-  const userDetail = users?.data?.filter(
-    (detail: UserType) => detail.client_id === clientId
-  )[0];
+  const { data: user }: Partial<{ data: SingleUserType }> = useQuery(
+    ["user", id],
+    () =>
+      apiClient.get(`/users/single?id=${id}`).then((res) => {
+        return res?.data?.data;
+      })
+  );
+
+  // const userDetail = users?.data?.filter(
+  //   (detail: UserType) => detail.client_id === clientId
+  // )[0];
 
   const [overallStatus, setOverallStatus] = useState("");
 
@@ -98,7 +106,7 @@ const UserProfile = () => {
             fontSize="24px"
             lineHeight="29px"
           >
-            {`${userDetail?.first_name} ${userDetail?.last_name}`}
+            {`${user?.first_name} ${user?.last_name}`}
           </Text>
         </HStack>
         <Button
@@ -242,7 +250,12 @@ const UserProfile = () => {
         borderColor="neutral.200"
         pb="8"
       >
-        <Icon as={UserAvatar} boxSize="64px" />
+        <Image
+          borderRadius="full"
+          boxSize="64px"
+          src={user?.image}
+          alt="User Picture"
+        />
         <Text
           fontWeight="600"
           fontSize="24px"
@@ -256,19 +269,19 @@ const UserProfile = () => {
           {[
             {
               title: "User ID",
-              data: userDetail?.client_id,
+              data: user?.client_id,
             },
             {
               title: "First name",
-              data: userDetail?.first_name,
+              data: user?.first_name,
             },
             {
               title: "Last name",
-              data: userDetail?.last_name,
+              data: user?.last_name,
             },
             {
               title: "Email address",
-              data: userDetail?.email,
+              data: user?.email,
             },
           ].map((item) => (
             <VStack key={item.title} align="start">
@@ -301,35 +314,35 @@ const UserProfile = () => {
           {[
             {
               title: "Annual income",
-              data: "$470.48",
+              data: user?.employment?.annual_income,
             },
             {
               title: "Investment goal",
-              data: "$470.48",
+              data: user?.investment?.goal,
             },
             {
               title: "Investment experience",
-              data: "None",
+              data: user?.investment?.experience,
             },
             {
               title: "Marital status",
-              data: "Single",
+              data: user?.investment?.marital_status,
             },
             {
               title: "Next of kin name",
-              data: "Kathryn Murphy",
+              data: user?.investment?.next_of_kin_name,
             },
             {
               title: "Next of kin phone",
-              data: "nil",
+              data: user?.investment?.next_of_kin_phone,
             },
             {
               title: "Next of kin email",
-              data: "nil",
+              data: user?.investment?.next_of_kin_email,
             },
             {
               title: "Next of kin relationship",
-              data: "Sister",
+              data: user?.investment?.next_of_kin_relationship,
             },
           ].map((item) => (
             <VStack key={item.title} mt="8" align="start" mr="10">
@@ -366,7 +379,7 @@ const UserProfile = () => {
             mb="2"
             color="secondaryGreen.700"
           >
-            Document.pdf
+            {user?.document?.name}
           </Text>
           <Text
             fontWeight="500"

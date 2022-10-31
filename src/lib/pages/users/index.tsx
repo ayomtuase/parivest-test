@@ -1,4 +1,5 @@
 /* eslint-disable no-nested-ternary */
+/* eslint no-underscore-dangle: 0 */
 
 import {
   Button,
@@ -26,6 +27,7 @@ import {
 } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useState } from "react";
 
 import CancelIcon from "../../assets/icons/cancel.svg";
 import ChevronDownIcon from "../../assets/icons/chevron-down.svg";
@@ -57,10 +59,17 @@ const colorStatusText = (status: string) => {
 };
 
 const Users = () => {
-  const { data: { data: users = [] } = {} } = useQuery(["users"], () =>
-    apiClient.get("/users").then((res) => {
-      return res?.data?.data?.[0];
-    })
+  const [page, setPage] = useState(1);
+  const {
+    data: { data: users = [], metadata: pageInfo = {} } = {},
+    isPreviousData,
+  } = useQuery(
+    ["users", page],
+    () =>
+      apiClient.get(`/users?pageNo=${page}`).then((res) => {
+        return res?.data?.data?.[0];
+      }),
+    { keepPreviousData: true }
   );
 
   return (
@@ -211,29 +220,43 @@ const Users = () => {
                     </Box>
                   </Td>
                   <Td h="69px" color="secondaryGreen.600" px="3">
-                    <Link href={`/user-profile/${user?.client_id}`}>View</Link>
+                    <Link href={`/user/${user?._id}`}>View</Link>
                   </Td>
                 </Tr>
               ))}
             </>
           </Tbody>
         </Table>
-        <Flex justify="end" mb="29px">
-          <VStack spacing="4" pr="8" align="center">
-            <HStack spacing="4" mt="9">
-              <Button bg="secondaryGreen.500" color="primaryBlue.50" p="2">
-                Prev
-              </Button>
-              <Button bg="secondaryGreen.500" color="primaryBlue.50" p="2">
-                Next
-              </Button>
-            </HStack>
-            <Text color="neutral.900">
-              {1} of {21}
-            </Text>
-          </VStack>
-        </Flex>
       </TableContainer>
+      <Flex justify="end" mb="29px">
+        <VStack spacing="4" pr="8" align="center">
+          <HStack spacing="4" mt="9">
+            <Button
+              colorScheme="secondaryGreen"
+              disabled={page === 1}
+              p="2"
+              onClick={() => setPage((old) => Math.max(old - 1, 1))}
+            >
+              Prev
+            </Button>
+            <Button
+              colorScheme="secondaryGreen"
+              p="2"
+              onClick={() => {
+                if (!isPreviousData || pageInfo.page <= 50) {
+                  setPage((old) => old + 1);
+                }
+              }}
+              disabled={isPreviousData || pageInfo.page >= 50}
+            >
+              Next
+            </Button>
+          </HStack>
+          <Text color="neutral.900">
+            {pageInfo.page || ""} of {pageInfo.pages || ""}
+          </Text>
+        </VStack>
+      </Flex>
     </Flex>
   );
 };
