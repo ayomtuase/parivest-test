@@ -77,6 +77,7 @@ const Users = () => {
       <HStack color="neutral.800" ml="8" mt="8" mb="6">
         <Menu>
           <MenuButton
+            position="static"
             mb="8"
             as={Button}
             rightIcon={

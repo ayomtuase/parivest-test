@@ -1,4 +1,4 @@
-import { Divider, Flex, Show, VStack } from "@chakra-ui/react";
+import { Divider, Flex, SlideFade, VStack } from "@chakra-ui/react";
 
 import AdminsIcon from "../assets/icons/admins.svg";
 import ChangePasswordIcon from "../assets/icons/change-password.svg";
@@ -10,15 +10,18 @@ import UsersIcon from "../assets/icons/users.svg";
 import WalletIcon from "../assets/icons/wallet.svg";
 import NavItem from "lib/components/NavItem";
 
-const SideNav = ({ collapseLgNav }: { collapseLgNav: boolean }) => {
+const MobileNav = ({
+  showNav,
+  navMobileWidth,
+}: {
+  showNav: boolean;
+  navMobileWidth: string;
+}) => {
   return (
-    <Show above="lg">
+    <SlideFade in={showNav} offsetX="-315px" offsetY="0px">
       <Flex
         direction="column"
-        w={{
-          lg: collapseLgNav ? "8%" : "20%",
-          xl: collapseLgNav ? "5%" : "17%",
-        }}
+        w={navMobileWidth}
         minH="100%"
         maxH="100%"
         overflowY="auto"
@@ -26,7 +29,7 @@ const SideNav = ({ collapseLgNav }: { collapseLgNav: boolean }) => {
         zIndex="sticky"
         bg="white"
         boxShadow="base"
-        position={{ base: "absolute", lg: "sticky" }}
+        position="absolute"
       >
         <VStack align="start" justify="space-between" flexGrow="1" mt="30px">
           <VStack w="100%" align="start" pl="8px" pr="8px">
@@ -61,7 +64,6 @@ const SideNav = ({ collapseLgNav }: { collapseLgNav: boolean }) => {
                 icon={item.icon}
                 navItemName={item.navItemName}
                 active={item.navItemName === "Users"}
-                collapseLgNav={collapseLgNav}
               />
             ))}
           </VStack>
@@ -90,15 +92,14 @@ const SideNav = ({ collapseLgNav }: { collapseLgNav: boolean }) => {
                   key={item.navItemName}
                   icon={item.icon}
                   navItemName={item.navItemName}
-                  collapseLgNav={collapseLgNav}
                 />
               ))}
             </VStack>
           </VStack>
         </VStack>
       </Flex>
-    </Show>
+    </SlideFade>
   );
 };
 
-export default SideNav;
+export default MobileNav;
