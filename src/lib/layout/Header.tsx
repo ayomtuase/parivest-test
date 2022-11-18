@@ -28,11 +28,10 @@ const Header = ({
     <Flex
       minH={{ base: "80px", lg: "93px" }}
       align="center"
-      pl={{ base: "4", lg: "10" }}
-      pr={{ base: "4", lg: "12" }}
+      pl={{ base: "3", lg: "10" }}
+      pr={{ base: "3", lg: "12" }}
       justify="space-between"
-      position="fixed"
-      minW="100%"
+      position="sticky"
       top="0"
       zIndex="sticky"
       bg="white"
@@ -90,35 +89,24 @@ const Header = ({
       </HStack>
 
       <HStack spacing="30px">
-        <Icon
-          as={RepeatIcon}
-          boxSize="20px"
-          display={{ base: "none", md: "inline" }}
-        />
-        <Icon
-          as={NotificationIcon}
-          boxSize="20px"
-          display={{ base: "none", md: "inline" }}
-        />
-        <VStack spacing="1" align="start">
-          <Text
-            color="neutral.800"
-            fontWeight="medium"
-            fontSize="20px"
-            lineHeight="24px"
-            display={{ base: "none", md: "inline" }}
-          >
-            Ole Gunnar
-          </Text>
-          <Text
-            color="neutral.700"
-            fontSize="14px"
-            lineHeight="17px"
-            display={{ base: "none", md: "inline" }}
-          >
-            Super Admin
-          </Text>
-        </VStack>
+        <Show above="md">
+          <Icon as={RepeatIcon} boxSize="20px" />
+          <Icon as={NotificationIcon} boxSize="20px" />
+          <VStack spacing="1" align="start">
+            <Text
+              color="neutral.800"
+              fontWeight="medium"
+              fontSize="20px"
+              lineHeight="24px"
+            >
+              Ole Gunnar
+            </Text>
+            <Text color="neutral.700" fontSize="14px" lineHeight="17px">
+              Super Admin
+            </Text>
+          </VStack>
+        </Show>
+
         <Icon as={AvatarIcon} boxSize="45px" />
       </HStack>
     </Flex>

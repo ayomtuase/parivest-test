@@ -15,11 +15,11 @@ interface LayoutProps {
 const DashboardLayout = ({ children }: LayoutProps) => {
   const [showNav, setShowNav] = useState<boolean>(false);
 
-  const [collapseLgNav, setCollapseLgNav] = useState<boolean>(false);
+  const [isNavCollapsed, setNavCollapsed] = useState<boolean>(false);
+  const [isNavHovered, setNavHovered] = useState<boolean>(false);
 
   return (
     <Flex
-      w="100%"
       maxW="100vw"
       minH="100vh"
       maxH="100vh"
@@ -29,18 +29,21 @@ const DashboardLayout = ({ children }: LayoutProps) => {
       <Header
         showNav={showNav}
         setShowNav={setShowNav}
-        setCollapseLgNav={setCollapseLgNav}
+        setCollapseLgNav={setNavCollapsed}
       />
 
       <Flex
         position="relative"
-        top={{ base: "80px", lg: "93px" }}
         minH={{ base: "calc(100vh - 80px)", lg: "calc(100vh - 93px)" }}
         maxH={{ base: "calc(100vh - 80px)", lg: "calc(100vh - 93px)" }}
       >
-        <SideNav collapseLgNav={collapseLgNav} />
+        <SideNav
+          isNavCollapsed={isNavCollapsed}
+          isNavHovered={isNavHovered}
+          setNavHovered={setNavHovered}
+        />
 
-        {/* Mobile SideNav shadow */}
+        {/* Mobile SideNav and shadow */}
         <Show below="lg">
           <MobileNav showNav={showNav} navMobileWidth={sideNavMobileWidth} />
           <ScaleFade initialScale={0.95} in={showNav}>
@@ -60,10 +63,13 @@ const DashboardLayout = ({ children }: LayoutProps) => {
         <Box
           bg="neutral.50"
           flexGrow="1"
-          px="10"
+          px={{ base: "3", md: "10" }}
           pt="10"
-          maxW="100%"
           overflowX="auto"
+          ml={{
+            lg: isNavHovered ? "7%" : "0",
+            xl: isNavHovered ? "5%" : "0",
+          }}
         >
           {children}
         </Box>

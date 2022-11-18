@@ -1,5 +1,6 @@
 /* eslint-disable no-nested-ternary */
 /* eslint no-underscore-dangle: 0 */
+/* eslint-disable react/no-array-index-key */
 
 import {
   Button,
@@ -19,20 +20,18 @@ import {
   Th,
   Thead,
   Tr,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
   Box,
+  Stack,
+  Skeleton,
 } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
+import { Select } from "chakra-react-select";
 import Link from "next/link";
 import { useState } from "react";
 
 import CancelIcon from "../../assets/icons/cancel.svg";
-import ChevronDownIcon from "../../assets/icons/chevron-down.svg";
-import DateIcon from "../../assets/icons/date.svg";
 import SearchIcon from "../../assets/icons/search.svg";
+import DatePicker from "lib/components/DatePicker";
 import type { UserType } from "lib/types/user";
 import { apiClient } from "lib/utils/apiClient";
 import { formatDate } from "lib/utils/formatDate";
@@ -58,86 +57,131 @@ const colorStatusText = (status: string) => {
   return color;
 };
 
+const colorStatusBg = (status: string) => {
+  let color = "";
+  switch (status) {
+    case "Approved":
+      color = "#DEEDE5";
+      break;
+    case "Pending":
+      color = "#F8F2D4";
+      break;
+    case "In-review":
+      color = "#D4E2F8";
+      break;
+    case "Denied":
+      color = "#ffe6e6";
+      break;
+    default:
+      color = "";
+  }
+  return color;
+};
+const filterOptions = [
+  { value: "", label: "All" },
+  { value: "approved", label: "Approved" },
+  { value: "pending", label: "Pending" },
+  { value: "in-review", label: "In-review" },
+];
+
 const Users = () => {
   const [page, setPage] = useState(1);
+  const [accessValue, setAccessValue] = useState<string | undefined>("");
+  const [search, setSearch] = useState("");
+
+  const [fromDate, setFromDate] = useState<Date | null>(null);
+  const [toDate, setToDate] = useState<Date | null>(null);
   const {
+    isLoading,
+    isLoadingError,
     data: { data: users = [], metadata: pageInfo = {} } = {},
     isPreviousData,
   } = useQuery(
-    ["users", page],
+    ["users", { page, fromDate, toDate, accessValue, search }],
     () =>
-      apiClient.get(`/users?pageNo=${page}`).then((res) => {
-        return res?.data?.data?.[0];
-      }),
-    { keepPreviousData: true }
+      apiClient
+        .get(
+          `/users?pageNo=${page}&fromDate=${
+            fromDate?.toLocaleDateString("en-US") ?? ""
+          }&toDate=${
+            toDate?.toLocaleDateString("en-US") ?? ""
+          }&access=${accessValue}&search=${search}`
+        )
+        .then((res) => {
+          return res?.data?.data?.[0];
+        }),
+    {}
   );
 
   return (
-    <Flex bg="white" direction="column" mb="10">
-      <HStack color="neutral.800" ml="8" mt="8" mb="6">
-        <Menu>
-          <MenuButton
-            position="static"
-            mb="8"
-            as={Button}
-            rightIcon={
-              <Icon
-                as={ChevronDownIcon}
-                boxSize="24px"
-                color="primaryBlue.600"
-              />
-            }
-          >
-            <Text textAlign="start">All</Text>
-          </MenuButton>
-          <MenuList w="400px">
-            <MenuItem>Pending</MenuItem>
-            <MenuItem>In Review</MenuItem>
-            <MenuItem>Approved</MenuItem>
-          </MenuList>
-        </Menu>
-      </HStack>
-      <Flex justify="space-between" px="8">
-        <HStack>
-          <Text color="neutral.600">From</Text>
-          <HStack
-            spacing="27px"
-            px="5px"
-            borderBottom="1px solid"
-            borderColor="neutral.600"
-            py="7px"
-          >
-            <Text color="neutral.800">dd/mm/yyyy</Text>
-            <Icon as={DateIcon} boxSize="24px" />
+    <Flex bg="white" direction="column" mb="10" id="dashboard-page-parent">
+      <Box
+        color="neutral.800"
+        ml={{ base: "3", md: "8" }}
+        mt="8"
+        mb="6"
+        w={{ base: "150px", md: "330px" }}
+      >
+        <Select
+          name="access"
+          useBasicStyles
+          options={filterOptions}
+          onChange={(access) => setAccessValue(access?.value)}
+          defaultValue={filterOptions[0]}
+          closeMenuOnSelect
+          isSearchable={false}
+        />
+      </Box>
+      <Stack
+        justify={{ base: "start", md: "space-between" }}
+        direction={{ base: "column", md: "row" }}
+        px={{ base: "3", md: "8" }}
+        spacing="4"
+      >
+        <Stack
+          direction={{ base: "column", md: "row" }}
+          align={{ base: "start", md: "center" }}
+          spacing="4"
+        >
+          <HStack>
+            <Text color="neutral.600">From</Text>
+
+            <DatePicker
+              selected={fromDate}
+              onChange={(date: Date | null) => date && setFromDate(date)}
+              selectsStart
+              startDate={fromDate}
+              endDate={toDate}
+            />
           </HStack>
-          <Text color="neutral.600" ml="4">
-            To
-          </Text>
-          <HStack
-            spacing="27px"
-            px="5px"
-            borderBottom="1px solid"
-            borderColor="neutral.600"
-            py="7px"
-          >
-            <Text color="neutral.800">dd/mm/yyyy</Text>
-            <Icon as={DateIcon} boxSize="24px" />
+          <HStack>
+            <Text color="neutral.600">To</Text>
+            <DatePicker
+              selected={toDate}
+              selectsEnd
+              startDate={fromDate}
+              endDate={toDate}
+              minDate={fromDate}
+              onChange={(date: Date | null) => date && setToDate(date)}
+            />
           </HStack>
-        </HStack>
+        </Stack>
 
         <HStack spacing="8px">
           <IconButton
             aria-label="Cancel Search"
+            position="static"
             icon={<CancelIcon />}
             bg="#5CA37B"
             borderRadius="4px"
             _hover={{
               bg: "#5CA37B",
             }}
+            onClick={() => setSearch("")}
           />
           <InputGroup>
             <InputLeftElement pointerEvents="none">
-              <SearchIcon />
+              <Icon as={SearchIcon} w="16px" h="17px" />
             </InputLeftElement>
             <Input
               type="text"
@@ -146,10 +190,12 @@ const Users = () => {
               borderBottom="1px solid"
               borderBottomColor="neutral.500"
               borderRadius="0"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
           </InputGroup>
         </HStack>
-      </Flex>
+      </Stack>
 
       <TableContainer mt="8" borderTop="1px solid" borderColor="neutral.200">
         <Table variant="striped">
@@ -180,52 +226,53 @@ const Users = () => {
             </Tr>
           </Thead>
           <Tbody>
-            <>
-              {users.map((user: UserType) => (
-                <Tr color="neutral.900" key={user?.client_id}>
-                  <Td h="69px" px="4">
-                    {formatDate(user?.createdAt)}
-                  </Td>
-                  <Td h="69px" color="tertiaryBlue.700">
-                    {user?.client_id}
-                  </Td>
-                  <Td
-                    h="69px"
-                    px="4"
-                  >{`${user?.first_name} ${user?.last_name}`}</Td>
-                  <Td h="69px" px="4">
-                    {user?.email}
-                  </Td>
-                  <Td h="69px" px="4">
-                    {user?.phone}
-                  </Td>
-                  <Td h="69px" px="3">
-                    <Box
-                      as="span"
-                      p="8px 16px"
-                      borderRadius="16px"
-                      bg={
-                        user?.status?.access === "Approved"
-                          ? "#DEEDE5"
-                          : user?.status?.access === "Pending"
-                          ? "#F8F2D4"
-                          : user?.status?.access === "In-review"
-                          ? "#D4E2F8"
-                          : user?.status?.access === "Denied"
-                          ? "#ffe6e6"
-                          : ""
-                      }
-                      color={colorStatusText(user?.status?.access)}
-                    >
-                      {user?.status?.access}
-                    </Box>
-                  </Td>
-                  <Td h="69px" color="secondaryGreen.600" px="3">
-                    <Link href={`/user/${user?._id}`}>View</Link>
-                  </Td>
-                </Tr>
-              ))}
-            </>
+            {isLoading || isLoadingError
+              ? Array(20)
+                  .fill("")
+                  .map((_, index) => (
+                    <Tr key={index}>
+                      <Td key={index} h="69px" colSpan={9999} px="4">
+                        <Skeleton
+                          isLoaded={!isLoading && !isLoadingError}
+                          height="100%"
+                        />
+                      </Td>
+                    </Tr>
+                  ))
+              : users.map((user: UserType) => (
+                  <Tr color="neutral.900" key={user?.client_id}>
+                    <Td h="69px" px="4">
+                      {formatDate(user?.createdAt)}
+                    </Td>
+                    <Td h="69px" color="tertiaryBlue.700">
+                      {user?.client_id}
+                    </Td>
+                    <Td
+                      h="69px"
+                      px="4"
+                    >{`${user?.first_name} ${user?.last_name}`}</Td>
+                    <Td h="69px" px="4">
+                      {user?.email}
+                    </Td>
+                    <Td h="69px" px="4">
+                      {user?.phone}
+                    </Td>
+                    <Td h="69px" px="3">
+                      <Box
+                        as="span"
+                        p="8px 16px"
+                        borderRadius="16px"
+                        bg={colorStatusBg(user?.status?.access)}
+                        color={colorStatusText(user?.status?.access)}
+                      >
+                        {user?.status?.access}
+                      </Box>
+                    </Td>
+                    <Td h="69px" color="secondaryGreen.600" px="3">
+                      <Link href={`/user/${user?._id}`}>View</Link>
+                    </Td>
+                  </Tr>
+                ))}
           </Tbody>
         </Table>
       </TableContainer>
@@ -236,6 +283,7 @@ const Users = () => {
               colorScheme="secondaryGreen"
               disabled={page === 1}
               p="2"
+              zIndex=""
               onClick={() => setPage((old) => Math.max(old - 1, 1))}
             >
               Prev
@@ -253,9 +301,15 @@ const Users = () => {
               Next
             </Button>
           </HStack>
-          <Text color="neutral.900">
-            {pageInfo.page || ""} of {pageInfo.pages || ""}
-          </Text>
+          <HStack color="neutral.900" spacing="6px">
+            <Skeleton boxSize="6" isLoaded={!isLoading}>
+              <Text textAlign="end">{pageInfo.page || ""}</Text>
+            </Skeleton>
+            <Text>of</Text>
+            <Skeleton boxSize="6" isLoaded={!isLoading}>
+              <Text>{pageInfo.pages || ""}</Text>
+            </Skeleton>
+          </HStack>
         </VStack>
       </Flex>
     </Flex>

@@ -1,9 +1,12 @@
+/* eslint-disable no-extra-boolean-cast */
+/* eslint-disable no-nested-ternary */
+
 import {
   Button,
+  Image,
   Flex,
   HStack,
   Icon,
-  Image,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -12,9 +15,13 @@ import {
   ModalHeader,
   ModalOverlay,
   Select,
+  Skeleton,
+  SkeletonCircle,
   Text,
   useDisclosure,
   VStack,
+  Stack,
+  Spinner,
 } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/router";
@@ -25,6 +32,22 @@ import ChevronDownIcon from "../../assets/icons/chevron-down.svg";
 import type { SingleUserType } from "lib/types/singleUserType";
 import { apiClient } from "lib/utils/apiClient";
 
+// const Image = chakra(NextImage, {
+//   baseStyle: { maxH: 120, maxW: 120 },
+//   shouldForwardProp: (prop) =>
+//     [
+//       "width",
+//       "height",
+//       "layout",
+//       "src",
+//       "loader",
+//       "alt",
+//       "quality",
+//       "placeholder",
+//       "blurDataURL",
+//     ].includes(prop),
+// });
+
 const UserProfile = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
@@ -33,24 +56,29 @@ const UserProfile = () => {
     onClose: onInfoModalClose,
   } = useDisclosure();
 
-  // const queryClient = useQueryClient();
+  const {
+    isOpen: isUploadedDocOpen,
+    onOpen: onUploadedDocOpen,
+    onClose: onUploadedDocClose,
+  } = useDisclosure();
 
-  // const users: Users | undefined = queryClient.getQueryData(["users"]);
   const router = useRouter();
 
   const { id } = router.query;
 
-  const { data: user }: Partial<{ data: SingleUserType }> = useQuery(
-    ["user", id],
-    () =>
-      apiClient.get(`/users/single?id=${id}`).then((res) => {
-        return res?.data?.data;
-      })
+  const {
+    data: user,
+    isLoading,
+    isError,
+  }: Partial<{
+    data: SingleUserType;
+    isLoading: boolean;
+    isError: boolean;
+  }> = useQuery(["user", id], () =>
+    apiClient.get(`/users/single?id=${id}`).then((res) => {
+      return res?.data?.data;
+    })
   );
-
-  // const userDetail = users?.data?.filter(
-  //   (detail: UserType) => detail.client_id === clientId
-  // )[0];
 
   const [overallStatus, setOverallStatus] = useState("");
 
@@ -87,12 +115,16 @@ const UserProfile = () => {
 
   return (
     <Flex bg="white" direction="column">
-      <Flex
-        px="8"
+      <Stack
+        px={{ base: "3", md: "8" }}
         py="5"
         justify="space-between"
         borderBottom="1px solid"
         borderColor="neutral.200"
+        spacing="3"
+        direction={{ base: "column", sm: "row" }}
+        align={{ base: "start", sm: "center" }}
+        w="full"
       >
         <HStack>
           <Icon
@@ -100,22 +132,30 @@ const UserProfile = () => {
             boxSize="24px"
             onClick={() => router.back()}
           />
-          <Text
-            color="primaryBlue.500"
-            fontWeight="700"
-            fontSize="24px"
-            lineHeight="29px"
+          <Skeleton
+            isLoaded={!isLoading && !isError}
+            h={isLoading ? "29px" : "fit-content"}
           >
-            {`${user?.first_name} ${user?.last_name}`}
-          </Text>
+            <Text
+              color="primaryBlue.500"
+              fontWeight="700"
+              fontSize="24px"
+              lineHeight="29px"
+            >
+              {`${user?.first_name} ${user?.last_name}`}
+            </Text>
+          </Skeleton>
         </HStack>
         <Button
           color="primaryBlue.500"
           bg="primaryBlue.100"
           fontWeight="500"
           fontSize="14px"
-          lineHeight="17px"
+          px="12px"
+          py="10px"
+          height="min-content"
           onClick={onOpen}
+          sx={{ ms: { base: "30px !important", sm: "0 !important" } }}
         >
           View profile status
         </Button>
@@ -239,23 +279,25 @@ const UserProfile = () => {
             </ModalFooter>
           </ModalContent>
         </Modal>
-      </Flex>
+      </Stack>
 
       <Flex
         align="start"
         direction="column"
-        px="8"
+        px={{ base: "3", md: "8" }}
         pt="4"
         borderBottom="1px solid"
         borderColor="neutral.200"
         pb="8"
       >
-        <Image
-          borderRadius="full"
-          boxSize="64px"
-          src={user?.image}
-          alt="User Picture"
-        />
+        <SkeletonCircle size="64px" isLoaded={!isLoading && !isError}>
+          <Image
+            borderRadius="full"
+            boxSize="64px"
+            src={user?.image}
+            alt="User Picture"
+          />
+        </SkeletonCircle>
         <Text
           fontWeight="600"
           fontSize="24px"
@@ -265,7 +307,7 @@ const UserProfile = () => {
         >
           Account Details
         </Text>
-        <HStack spacing="10" mt="6">
+        <Flex columnGap="10" rowGap="3" mt="6" flexWrap="wrap">
           {[
             {
               title: "User ID",
@@ -286,16 +328,18 @@ const UserProfile = () => {
           ].map((item) => (
             <VStack key={item.title} align="start">
               <Text color="neutral.700">{item.title}</Text>
-              <Text>{item.data}</Text>
+              <Skeleton h="20px" w="100%" isLoaded={!isLoading && !isError}>
+                <Text>{item.data}</Text>
+              </Skeleton>
             </VStack>
           ))}
-        </HStack>
+        </Flex>
       </Flex>
 
       <Flex
         align="start"
         direction="column"
-        px="8"
+        px={{ base: "3", md: "8" }}
         pt="4"
         borderBottom="1px solid"
         borderColor="neutral.200"
@@ -347,12 +391,14 @@ const UserProfile = () => {
           ].map((item) => (
             <VStack key={item.title} mt="8" align="start" mr="10">
               <Text color="neutral.700">{item.title}</Text>
-              <Text>{item.data}</Text>
+              <Skeleton h="20px" w="100%" isLoaded={!isLoading && !isError}>
+                <Text>{item.data}</Text>
+              </Skeleton>
             </VStack>
           ))}
         </Flex>
       </Flex>
-      <Flex px="8" direction="column" w="100%" pb="8">
+      <Flex px={{ base: "3", md: "8" }} direction="column" w="100%" pb="8">
         <Text
           fontWeight="600"
           fontSize="24px"
@@ -364,6 +410,55 @@ const UserProfile = () => {
           Document upload
         </Text>
 
+        {/* Image Uploaded Document */}
+        <Modal
+          isOpen={isUploadedDocOpen}
+          onClose={onUploadedDocClose}
+          isCentered
+        >
+          <ModalOverlay bg="rgba(0,0,0,0.8)" />
+          <ModalContent bg="transparent">
+            <ModalCloseButton
+              bg="transparent"
+              color="white"
+              position="absolute"
+              top="-40px"
+            />
+            <ModalBody
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              bg="transparent"
+            >
+              {isLoading ? (
+                <Spinner
+                  thickness="4px"
+                  speed="0.65s"
+                  emptyColor="gray.200"
+                  color="blue.500"
+                  size="xl"
+                />
+              ) : !!user?.document?.image ? (
+                <>
+                  <Image
+                    src={user.document.image}
+                    width="250px"
+                    height="100px"
+                    mb="4"
+                  />
+                  <Text color="white" fontSize="20px" textAlign="center">
+                    Image from the Backend Api
+                  </Text>
+                </>
+              ) : (
+                <Text color="white" fontSize="20px" textAlign="center">
+                  No Image Provided from Backend Api
+                </Text>
+              )}
+            </ModalBody>
+          </ModalContent>
+        </Modal>
+
         <Flex
           bg="primaryBlue.50"
           h="193px"
@@ -371,16 +466,20 @@ const UserProfile = () => {
           direction="column"
           justify="center"
           align="center"
+          onClick={() => onUploadedDocOpen()}
         >
-          <Text
-            fontWeight="500"
-            fontSize="20px"
-            lineHeight="24px"
-            mb="2"
-            color="secondaryGreen.700"
-          >
-            {user?.document?.name}
-          </Text>
+          <Skeleton h="24px" w="300px" isLoaded={!isLoading && !isError} mb="3">
+            <Text
+              textAlign="center"
+              fontWeight="500"
+              fontSize="20px"
+              lineHeight="24px"
+              mb="2"
+              color="secondaryGre en.700"
+            >
+              {user?.document?.name}
+            </Text>
+          </Skeleton>
           <Text
             fontWeight="500"
             fontSize="14px"
