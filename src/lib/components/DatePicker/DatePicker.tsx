@@ -143,7 +143,6 @@ const DatePicker = ({ onChange, ...props }: ReactDatePickerProps) => {
       selectsEnd
       _focusVisible={{
         outline: "0",
-        border: "1px solid",
         borderColor: "primaryBlue.500",
       }}
       renderCustomHeader={CustomDatePickerHeader}

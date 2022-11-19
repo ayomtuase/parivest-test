@@ -14,7 +14,6 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Select,
   Skeleton,
   SkeletonCircle,
   Text,
@@ -22,31 +21,23 @@ import {
   VStack,
   Stack,
   Spinner,
+  Box,
 } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
+import { Select } from "chakra-react-select";
 import { useRouter } from "next/router";
-import { type ChangeEvent, Fragment, useState } from "react";
+import { useState, useEffect } from "react";
 
 import ArrowLeftIcon from "../../assets/icons/arrow-left.svg";
-import ChevronDownIcon from "../../assets/icons/chevron-down.svg";
 import type { SingleUserType } from "lib/types/singleUserType";
 import { apiClient } from "lib/utils/apiClient";
 
-// const Image = chakra(NextImage, {
-//   baseStyle: { maxH: 120, maxW: 120 },
-//   shouldForwardProp: (prop) =>
-//     [
-//       "width",
-//       "height",
-//       "layout",
-//       "src",
-//       "loader",
-//       "alt",
-//       "quality",
-//       "placeholder",
-//       "blurDataURL",
-//     ].includes(prop),
-// });
+const accessOptions = [
+  { value: "Denied", label: "Denied" },
+  { value: "Approved", label: "Approved" },
+  { value: "Pending", label: "Pending" },
+  { value: "In-review", label: "In-review" },
+];
 
 const UserProfile = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -82,31 +73,57 @@ const UserProfile = () => {
 
   const [overallStatus, setOverallStatus] = useState("");
 
-  const [status, setStatus] = useState({
-    access: "Denied",
-    accountInformation: "Denied",
-    investmentProfile: "Denied",
-    employmentInformation: "Denied",
-    bioInformation: "Denied",
-  });
+  const [status, setStatus] = useState<{
+    [index: string]: {
+      value: string | undefined;
+      label: string | undefined;
+    };
+  }>({});
+
+  useEffect(() => {
+    setStatus({
+      access: { value: user?.status?.access, label: user?.status?.access },
+      accountInformation: {
+        value: user?.status?.bank,
+        label: user?.status?.bank,
+      },
+      investmentProfile: {
+        value: user?.status?.investment,
+        label: user?.status?.investment,
+      },
+      employmentInformation: {
+        value: user?.status?.employment,
+        label: user?.status?.employment,
+      },
+      bioInformation: {
+        value: user?.status?.biodata,
+        label: user?.status?.biodata,
+      },
+    });
+  }, [user]);
 
   const handleStatusChange = (
-    e: ChangeEvent<HTMLSelectElement>,
-    statusName: string
+    statusName: string,
+    value: { value: string | undefined; label: string | undefined } | null
   ) => {
-    setStatus((s) => {
-      return { ...s, [statusName]: e.target.value };
-    });
+    if (value !== null) {
+      setStatus((s: typeof status) => {
+        return {
+          ...s,
+          [statusName]: { value: value.value, label: value.label },
+        };
+      });
+    }
   };
 
   const handleUpdate = () => {
-    if (Object.values(status).some((s) => s === "Pending")) {
+    if (Object.values(status).some((s) => s.value === "Pending")) {
       setOverallStatus("Pending");
     }
-    if (Object.values(status).some((s) => s === "In review")) {
+    if (Object.values(status).some((s) => s.value === "In review")) {
       setOverallStatus("In review");
     }
-    if (Object.values(status).every((s) => s === "Approved")) {
+    if (Object.values(status).every((s) => s.value === "Approved")) {
       setOverallStatus("Approved");
     }
     onClose();
@@ -154,7 +171,7 @@ const UserProfile = () => {
           px="12px"
           py="10px"
           height="min-content"
-          onClick={onOpen}
+          onClick={() => (isLoading ? null : onOpen())}
           sx={{ ms: { base: "30px !important", sm: "0 !important" } }}
         >
           View profile status
@@ -171,52 +188,41 @@ const UserProfile = () => {
                 {
                   title: "Access",
                   name: "access",
-                  value: status.access,
+                  defaultValue: status.access,
                 },
                 {
                   title: "Account information",
                   name: "accountInformation",
-                  value: status.accountInformation,
+                  defaultValue: status.accountInformation,
                 },
                 {
                   title: "Investment profile",
                   name: "investmentProfile",
-                  value: status.investmentProfile,
+                  defaultValue: status.investmentProfile,
                 },
                 {
                   title: "Employment information",
                   name: "employmentInformation",
-                  value: status.employmentInformation,
+                  defaultValue: status.employmentInformation,
                 },
                 {
                   title: "Bio information",
                   name: "bioInformation",
-                  value: status.bioInformation,
+                  defaultValue: status.bioInformation,
                 },
               ].map((item) => (
-                <Fragment key={item.title}>
+                <Box key={item.title} mb="4">
                   <Text color="neutral.700">{item.title}</Text>
                   <Select
-                    w="100%"
-                    mb="8"
-                    variant="filled"
-                    onChange={(e) => handleStatusChange(e, item.name)}
-                    icon={
-                      <Icon
-                        as={ChevronDownIcon}
-                        boxSize="24px"
-                        color="primaryBlue.600"
-                      />
-                    }
-                    placeholder="Select option"
-                    defaultValue={item.value}
-                  >
-                    <option value="Denied">Denied</option>
-                    <option value="Pending">Pending</option>
-                    <option value="In review">In review</option>
-                    <option value="Approved">Approved</option>
-                  </Select>
-                </Fragment>
+                    name="access"
+                    useBasicStyles
+                    options={accessOptions}
+                    onChange={(access) => handleStatusChange(item.name, access)}
+                    defaultValue={item.defaultValue}
+                    closeMenuOnSelect
+                    isSearchable={false}
+                  />
+                </Box>
               ))}
             </ModalBody>
             <ModalFooter>
@@ -246,14 +252,17 @@ const UserProfile = () => {
         </Modal>
 
         {/* OverallStatus */}
-        <Modal onClose={onClose} isOpen={isInfoModalOpen} isCentered>
+        <Modal onClose={onInfoModalClose} isOpen={isInfoModalOpen} isCentered>
           <ModalOverlay />
           <ModalContent>
             <ModalHeader>Status</ModalHeader>
             <ModalCloseButton color="secondaryGreen.600" />
             <ModalBody>
               <Text>Overall Status: {overallStatus}</Text>{" "}
-              <Text>API call should happen now</Text>
+              <Text>
+                API call should happen now, The journey ends here. Update
+                endpoints were not provided
+              </Text>
             </ModalBody>
             <ModalFooter>
               <Button

@@ -27,7 +27,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { Select } from "chakra-react-select";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import CancelIcon from "../../assets/icons/cancel.svg";
 import SearchIcon from "../../assets/icons/search.svg";
@@ -84,10 +84,19 @@ const filterOptions = [
   { value: "in-review", label: "In-review" },
 ];
 
+const pageLimitNoOptions = [
+  { value: 10, label: "10" },
+  { value: 20, label: "20" },
+  { value: 30, label: "30" },
+  { value: 40, label: "40" },
+  { value: 50, label: "50" },
+];
+
 const Users = () => {
   const [page, setPage] = useState(1);
   const [accessValue, setAccessValue] = useState<string | undefined>("");
   const [search, setSearch] = useState("");
+  const [pageLimitNo, setPageLimitNo] = useState<number | undefined>(20);
 
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
@@ -95,23 +104,27 @@ const Users = () => {
     isLoading,
     isLoadingError,
     data: { data: users = [], metadata: pageInfo = {} } = {},
-    isPreviousData,
   } = useQuery(
-    ["users", { page, fromDate, toDate, accessValue, search }],
+    ["users", { page, fromDate, toDate, accessValue, search, pageLimitNo }],
     () =>
       apiClient
         .get(
           `/users?pageNo=${page}&fromDate=${
             fromDate?.toLocaleDateString("en-US") ?? ""
           }&toDate=${
-            toDate?.toLocaleDateString("en-US") ?? ""
-          }&access=${accessValue}&search=${search}`
+            toDate?.toLocaleDateString("en-US") ??
+            new Date().toLocaleDateString("en-US")
+          }&access=${accessValue}&search=${search}&limitNo=${pageLimitNo ?? ""}`
         )
         .then((res) => {
           return res?.data?.data?.[0];
         }),
     {}
   );
+
+  useEffect(() => {
+    setPage(1);
+  }, [pageLimitNo, accessValue, search, fromDate, toDate]);
 
   return (
     <Flex bg="white" direction="column" mb="10" id="dashboard-page-parent">
@@ -138,13 +151,14 @@ const Users = () => {
         px={{ base: "3", md: "8" }}
         spacing="4"
       >
-        <Stack
+        <Flex
           direction={{ base: "column", md: "row" }}
           align={{ base: "start", md: "center" }}
-          spacing="4"
         >
-          <HStack>
-            <Text color="neutral.600">From</Text>
+          <Flex align="center">
+            <Text color="neutral.600" mr="3">
+              From
+            </Text>
 
             <DatePicker
               selected={fromDate}
@@ -153,8 +167,8 @@ const Users = () => {
               startDate={fromDate}
               endDate={toDate}
             />
-          </HStack>
-          <HStack>
+          </Flex>
+          <HStack ms="4">
             <Text color="neutral.600">To</Text>
             <DatePicker
               selected={toDate}
@@ -165,7 +179,7 @@ const Users = () => {
               onChange={(date: Date | null) => date && setToDate(date)}
             />
           </HStack>
-        </Stack>
+        </Flex>
 
         <HStack spacing="8px">
           <IconButton
@@ -276,8 +290,24 @@ const Users = () => {
           </Tbody>
         </Table>
       </TableContainer>
-      <Flex justify="end" mb="29px">
-        <VStack spacing="4" pr="8" align="center">
+      <Flex justify="space-between" align="center" px="8" mb="29px">
+        <HStack w="35%" spacing="5" align="center">
+          <Text>Showing</Text>
+          <Box w="30%">
+            <Select
+              name="pageLimitNo"
+              menuPlacement="top"
+              useBasicStyles
+              options={pageLimitNoOptions}
+              onChange={(pageLimit) => setPageLimitNo(pageLimit?.value)}
+              defaultValue={pageLimitNoOptions[1]}
+              closeMenuOnSelect
+              isSearchable={false}
+            />
+          </Box>
+          <Text>users per page</Text>
+        </HStack>
+        <VStack spacing="4" align="center">
           <HStack spacing="4" mt="9">
             <Button
               colorScheme="secondaryGreen"
@@ -292,22 +322,22 @@ const Users = () => {
               colorScheme="secondaryGreen"
               p="2"
               onClick={() => {
-                if (!isPreviousData || pageInfo.page <= 50) {
+                if (pageInfo.page <= pageInfo.pages) {
                   setPage((old) => old + 1);
                 }
               }}
-              disabled={isPreviousData || pageInfo.page >= 50}
+              disabled={pageInfo.page >= pageInfo.pages}
             >
               Next
             </Button>
           </HStack>
-          <HStack color="neutral.900" spacing="6px">
+          <HStack color="neutral.900" spacing="6px" w="full" justify="center">
             <Skeleton boxSize="6" isLoaded={!isLoading}>
-              <Text textAlign="end">{pageInfo.page || ""}</Text>
+              <Text textAlign="center">{pageInfo.page || ""}</Text>
             </Skeleton>
             <Text>of</Text>
-            <Skeleton boxSize="6" isLoaded={!isLoading}>
-              <Text>{pageInfo.pages || ""}</Text>
+            <Skeleton boxSize="6" isLoaded={!isLoading} w="30px">
+              <Text textAlign="center">{pageInfo.pages || ""}</Text>
             </Skeleton>
           </HStack>
         </VStack>
